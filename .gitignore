@@ -1,0 +1,57 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Signing files
+*.jks
+*.keystore
+
+# Output files
+*.apk
+*.aab
+*.ap_
+
+# Proguard
+proguard/
+
+# Android profiling
+*.hprof
+
+# Kotlin
+*.kotlin_module
+.kotlin/
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+build/
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.idea_modules/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+**/.DS_Store
