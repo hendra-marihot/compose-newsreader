@@ -52,6 +52,9 @@ out/
 # VS Code
 .vscode/
 
+# Claude Code (local agent state)
+.claude/
+
 # macOS
 .DS_Store
 **/.DS_Store
