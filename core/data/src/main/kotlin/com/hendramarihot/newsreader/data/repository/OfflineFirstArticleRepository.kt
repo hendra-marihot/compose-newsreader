@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,6 +31,7 @@ class OfflineFirstArticleRepository @Inject constructor(
         launch { refreshArticles(category) }
         articleDao.getArticlesByCategory(category.apiName)
             .map { entities -> Result.Success(entities.map { it.toArticle() }) }
+            .distinctUntilChanged()
             .collect { send(it) }
     }.catch { exception ->
         Timber.e(exception, "Error loading articles")
@@ -39,6 +41,7 @@ class OfflineFirstArticleRepository @Inject constructor(
     override fun getArticle(id: String): Flow<Article?> =
         articleDao.getArticleById(id)
             .map { entity -> entity?.toArticle() }
+            .distinctUntilChanged()
 
     override fun searchArticles(query: String): Flow<Result<List<Article>>> = channelFlow {
         send(Result.Loading)
@@ -49,7 +52,14 @@ class OfflineFirstArticleRepository @Inject constructor(
             .filter { it.url.isNotBlank() }
             .map { it.toEntity() }
         articleDao.upsertPreservingBookmarks(entities)
-        send(Result.Success(entities.map { it.toArticle() }))
+        val bookmarkedIds = articleDao.getBookmarkedIds(entities.map { it.id }).toSet()
+        send(
+            Result.Success(
+                entities.map { entity ->
+                    entity.toArticle().copy(isBookmarked = entity.id in bookmarkedIds)
+                },
+            ),
+        )
     }.catch { exception ->
         Timber.e(exception, "Error searching articles")
         emit(Result.Error(exception))

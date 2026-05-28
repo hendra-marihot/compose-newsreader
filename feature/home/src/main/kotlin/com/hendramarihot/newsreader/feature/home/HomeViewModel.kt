@@ -6,6 +6,7 @@ import com.hendramarihot.newsreader.model.result.Result
 import com.hendramarihot.newsreader.domain.GetArticlesUseCase
 import com.hendramarihot.newsreader.model.Category
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,7 @@ class HomeViewModel @Inject constructor(
 
     private val selectedCategory = MutableStateFlow(Category.GENERAL)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<HomeUiState> = selectedCategory
         .flatMapLatest { category ->
             getArticlesUseCase(category).map { result ->

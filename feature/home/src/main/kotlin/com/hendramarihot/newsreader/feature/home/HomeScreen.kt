@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hendramarihot.newsreader.model.Category
 import com.hendramarihot.newsreader.ui.component.ArticleCard
+import com.hendramarihot.newsreader.ui.component.EmptyView
 import com.hendramarihot.newsreader.ui.component.ErrorView
 import com.hendramarihot.newsreader.ui.component.LoadingIndicator
 
@@ -79,7 +80,9 @@ private fun HomeContent(
                     message = uiState.message,
                     onRetry = { onCategorySelected(uiState.selectedCategory) },
                 )
-                is HomeUiState.Success -> {
+                is HomeUiState.Success -> if (uiState.articles.isEmpty()) {
+                    EmptyView(message = "No articles available")
+                } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),

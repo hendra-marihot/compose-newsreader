@@ -38,6 +38,7 @@ class OfflineFirstArticleRepositoryTest {
             articleDao = articleDao,
             ioDispatcher = testDispatcher,
         )
+        coEvery { articleDao.getBookmarkedIds(any()) } returns emptyList()
     }
 
     @Test
@@ -172,6 +173,30 @@ class OfflineFirstArticleRepositoryTest {
             val success = awaitItem() as Result.Success
             assertEquals(1, success.data.size)
             assertEquals("Valid", success.data.first().title)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `searchArticles reflects persisted bookmark state in emitted results`() = runTest(testDispatcher) {
+        val networkArticles = listOf(
+            NetworkArticle(
+                source = NetworkSource(id = "src", name = "Source"),
+                title = "Bookmarked Result",
+                url = "https://example.com/bookmarked",
+                publishedAt = "2025-01-01",
+            ),
+        )
+        coEvery { newsApi.searchArticles(query = "test") } returns NetworkResponse(
+            articles = networkArticles,
+        )
+        // Simulate that every upserted article is already bookmarked in the DB.
+        coEvery { articleDao.getBookmarkedIds(any()) } answers { firstArg() }
+
+        repository.searchArticles("test").test {
+            awaitItem() // Loading
+            val success = awaitItem() as Result.Success
+            assertEquals(true, success.data.first().isBookmarked)
             cancelAndIgnoreRemainingEvents()
         }
     }

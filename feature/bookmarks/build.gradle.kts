@@ -7,9 +7,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:data"))
-    implementation(project(":core:common"))
-
     testImplementation(libs.bundles.testing)
     testRuntimeOnly(libs.junit5.engine)
 }

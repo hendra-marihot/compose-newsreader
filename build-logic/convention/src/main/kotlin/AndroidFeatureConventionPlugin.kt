@@ -11,6 +11,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             with(pluginManager) {
                 apply("newsreader.android.library.compose")
                 apply("newsreader.android.hilt")
+                apply("org.jetbrains.kotlin.plugin.serialization")
             }
 
             val libs = libs()
