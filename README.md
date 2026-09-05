@@ -97,6 +97,21 @@ Build and run tests:
 
 Requires JDK 17. Targets Android API 26+ (compileSdk 35).
 
+## Related repositories
+
+This is one piece of a portfolio covering different aspects of senior mobile engineering:
+
+| Repository | Focus area |
+|---|---|
+| **compose-newsreader** (this repo) | Multi-module Android, Hilt, Room, offline-first |
+| [android-design-system](https://github.com/hendra-marihot/android-design-system) | Compose component library, design tokens |
+| [compose-performance-lab](https://github.com/hendra-marihot/compose-performance-lab) | Compose performance anti-patterns and fixes |
+| [kmp-currency-converter](https://github.com/hendra-marihot/kmp-currency-converter) | Kotlin Multiplatform, shared business logic |
+| [flutter-expense-tracker](https://github.com/hendra-marihot/flutter-expense-tracker) | Clean Architecture, Riverpod, Drift, Material 3 |
+| [flutter-ui-toolkit](https://github.com/hendra-marihot/flutter-ui-toolkit) | Reusable widgets, shimmer, adaptive layouts |
+| [flutter-platform-bridge](https://github.com/hendra-marihot/flutter-platform-bridge) | Platform channels, native interop |
+| [mobile-ci-cd-templates](https://github.com/hendra-marihot/mobile-ci-cd-templates) | CI/CD, release automation, infrastructure |
+
 ## License
 
 ```
