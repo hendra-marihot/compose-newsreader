@@ -3,13 +3,13 @@
 [![CI](https://github.com/hendra-marihot/compose-newsreader/actions/workflows/ci.yml/badge.svg)](https://github.com/hendra-marihot/compose-newsreader/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-A multi-module Android news reader built with Jetpack Compose, structured around offline-first data flow and strict layer boundaries. This is an architecture showcase, not a production app — the goal is to demonstrate the kind of structural thinking that matters on a team, using a domain simple enough to stay out of the way.
+A multi-module Android news reader built with Jetpack Compose. It shows cached articles first and refreshes from the network in the background. The code shows how I structure a native Android app for a team: strict module boundaries, one-way data flow, and build logic that does not drift.
 
-This project is part of a broader portfolio covering senior-level mobile engineering across native Android and Flutter. Other repositories cover different aspects of mobile engineering; this one focuses on modular architecture, cache-first data flow, and build system design in native Android.
+This repo is one of eight on senior mobile engineering. See [Related repositories](#related-repositories).
 
 ## Architecture
 
-The app is split into 12 Gradle modules across four layers. The dependency graph is strictly top-down — feature modules never depend on each other, and the domain layer has zero Android framework dependencies.
+12 Gradle modules in four layers. Dependencies point down only. Feature modules never depend on each other. The domain layer has no Android dependencies.
 
 ```
 :app
@@ -24,85 +24,73 @@ The app is split into 12 Gradle modules across four layers. The dependency graph
                      └── :core:model
 ```
 
-`:core:model` and `:core:domain` are pure Kotlin/JVM modules — no Android dependencies at all. Domain owns the repository interfaces; data provides the implementations. This means domain can be tested without Robolectric or an Android runtime, and the boundary is enforced by the build system, not just convention.
+`:core:model` and `:core:domain` are plain Kotlin/JVM modules. Domain owns the repository interfaces. Data provides the implementations. Domain code runs in tests without an Android runtime, and the build enforces the boundary.
 
-The module structure is managed by five convention plugins in `build-logic/`. A single `AndroidFeatureConventionPlugin` applies Compose, Hilt, and all `:core:*` dependencies for any feature module — the feature's `build.gradle.kts` is four lines. This eliminates the copy-paste Gradle that tends to drift across modules over time.
+Five convention plugins in `build-logic/` manage module setup. `AndroidFeatureConventionPlugin` applies Compose, Hilt and every `:core:*` dependency, so a feature's `build.gradle.kts` is four lines long.
 
 ## Key decisions
 
-**Offline-first with `channelFlow`.**
-The repository emits cached data from Room immediately, then launches a concurrent network refresh. When fresh data arrives, Room's reactive `Flow` emits again automatically. I used `channelFlow` because a regular `flow {}` can't launch concurrent coroutines — `channelFlow` provides a `SendChannel` that both the DAO's reactive stream and the refresh coroutine can write to. The tradeoff is slightly more complexity than a sequential emit-cached-then-emit-refreshed approach, but the UI never blocks on the network.
+**Offline-first with `channelFlow`.** The repository emits cached rows from Room right away, then starts a network refresh in a child coroutine. When new rows land in Room, the reactive query emits again. A plain `flow {}` cannot launch concurrent work, so `channelFlow` provides the channel that both the DAO stream and the refresh write to. The UI never waits on the network. The cost is a pattern that takes a minute to read.
 
-**SHA-256 article IDs.**
-NewsAPI returns article URLs as the only stable identifier, but URLs contain query parameters, slashes, and fragments that break Navigation Compose route parsing. The mapper hashes each URL with SHA-256, truncated to 12 hex chars, producing a deterministic, navigation-safe ID. The original URL is preserved in a separate field for browser/share features. This is tested explicitly — five tests in `MappersTest` verify stability, uniqueness, and the absence of special characters.
+**SHA-256 article IDs.** NewsAPI has no stable ID other than the article URL, and URLs break Navigation Compose routes. The mapper hashes each URL with SHA-256 and keeps 12 hex characters. The ID is deterministic and safe in a route. The original URL stays in its own field. Five tests in `MappersTest` cover stability, uniqueness and character safety.
 
-**Bookmark-preserving upserts.**
-When the app refreshes articles from the network, Room's `@Upsert` would overwrite the `isBookmarked` field (which only exists locally). The DAO handles this with a `@Transaction` method: read which IDs are currently bookmarked, upsert the batch, then restore the bookmark flags. This keeps the three-step operation atomic. Stale non-bookmarked articles are purged after 24 hours; bookmarked articles are kept indefinitely.
+**Bookmark-preserving upserts.** A plain `@Upsert` would wipe the local `isBookmarked` flag on every refresh. The DAO runs a `@Transaction`: read the bookmarked IDs, upsert the batch, restore the flags. Non-bookmarked articles older than 24 hours are purged. Bookmarked ones stay.
 
-**Convention plugins over copy-paste Gradle.**
-With 12 modules, duplicating `compileSdk`, `minSdk`, Compose compiler config, and Hilt wiring in every `build.gradle.kts` would be a maintenance problem. The `build-logic/` included build defines five plugins that compose together — `AndroidFeatureConventionPlugin` applies `library.compose` + `hilt` + all core dependencies in one line. Version management is fully centralized in `libs.versions.toml`.
+**Convention plugins instead of copied Gradle.** With 12 modules, repeating `compileSdk`, `minSdk`, Compose and Hilt setup in every build file is a maintenance problem. The `build-logic/` included build defines five plugins that compose. All versions live in `libs.versions.toml`.
 
-**kotlinx.serialization over Moshi.**
-The project uses KSP everywhere — Hilt, Room, and serialization all run through the same annotation processing pipeline. kotlinx.serialization is Kotlin-native, avoids adding Moshi's reflection or codegen as a separate dependency, and is the natural fit for a KSP-only build. The tradeoff: Moshi has better error messages for malformed JSON, which matters more in production than in a portfolio project.
+**kotlinx.serialization instead of Moshi.** Hilt, Room and serialization all run through KSP. kotlinx.serialization is Kotlin-native and needs no extra processor. Moshi gives better error messages for bad JSON, which matters more in production than here.
 
-**Unidirectional data flow.**
-Every ViewModel exposes a single `StateFlow<UiState>` with a sealed interface (`Loading`, `Success`, `Error`). Screen composables only wire the ViewModel; a separate stateless content composable receives state and event lambdas. This separation makes the UI testable without a ViewModel and keeps composable previews straightforward.
+**One-way data flow.** Each ViewModel exposes one `StateFlow<UiState>` with `Loading`, `Success` and `Error` variants. The screen composable wires the ViewModel. A separate stateless composable takes state and callbacks. Previews stay simple and the UI is testable without a ViewModel.
 
-## Testing strategy
+## Tests
 
-Tests focus on the layers where logic lives and bugs hide: the repository, the mappers, and the ViewModels.
+29 JVM tests. They sit where the logic is: the repository, the mappers and the ViewModels.
 
-| Layer | Files | What's tested |
+| Layer | Files | Covers |
 |---|---|---|
-| Repository | `OfflineFirstArticleRepositoryTest` (8 tests) | Cache-first emission order, graceful network failure, bookmark toggle, search with URL filtering |
-| Mappers | `MappersTest` (5 tests) | ID stability, determinism, uniqueness, field mapping, navigation safety |
-| ViewModels | 4 test files (14 tests total) | State transitions, category switching, bookmark toggling, preference propagation |
-| Use cases | `UseCaseTests` (4 tests) | Delegation correctness |
+| Repository | `OfflineFirstArticleRepositoryTest` (9) | Cache-first emission order, network failure fallback, bookmark toggle, search |
+| Mappers | `MappersTest` (5) | ID stability, uniqueness, field mapping, route safety |
+| ViewModels | 4 files (14) | State transitions, category switching, bookmarks, preferences |
+| Navigation | `HomeRouteSerializationTest` (1) | Route serialization |
 
-The use case tests are intentionally thin — each use case is a single-method delegator to a repository, so the tests verify wiring, not logic. The real coverage is at the repository level, where the offline-first behavior, concurrent refresh, and error handling actually happen.
+There are no Compose UI tests or instrumented tests. Everything runs with `./gradlew testDebugUnitTest`, which keeps CI fast.
 
-**What's not tested:** There are no Compose UI tests or instrumented tests. The current test suite runs entirely on the JVM via `./gradlew testDebugUnitTest`, which keeps CI fast. UI tests would add value for interaction regressions but aren't the focus of this project.
+## Out of scope
 
-## Non-goals
+- **Pagination.** NewsAPI's free tier returns a small set. Paging adds DAO and repository complexity without a new lesson.
+- **Pull-to-refresh.** The refresh runs on every subscription.
+- **WorkManager sync.** Right for production, but it shows nothing the current refresh does not.
+- **Retry with backoff.** The repository falls back to cache on failure. Retry would be a good addition.
+- **Baseline profiles and R8 rules.** Out of scope for an architecture repo.
 
-These are things I deliberately left out, not things I forgot:
+## What I would change
 
-- **Pagination.** NewsAPI's free tier returns a small result set. Adding paging would complicate the repository and DAO for minimal architectural insight beyond what the offline-first pattern already demonstrates.
-- **Pull-to-refresh / swipe gestures.** The refresh happens automatically on each subscription. Adding a manual trigger is a UI concern, not an architecture one.
-- **WorkManager background sync.** Would be the right choice for a production app, but doesn't demonstrate anything the current `channelFlow`-based refresh doesn't already show about concurrent data flow.
-- **Error retry with exponential backoff.** The repository silently falls back to cached data on network failure. A retry strategy would be a good addition but is orthogonal to the architecture patterns this project showcases.
-- **Baseline profiles and R8 rules.** Performance optimization is valuable but out of scope for an architecture-focused project.
-
-## What I'd change
-
-If I were rebuilding this, I'd reconsider a few things:
-
-- **The `channelFlow` pattern is subtle.** It works correctly, but a new team member reading the repository for the first time would need to trace through `channelFlow` + `launch` + `collect` + `send` to understand the data flow. A `combine`-based approach with a separate refresh trigger `Flow` might be more readable, even if slightly less elegant.
-- **No pagination makes the feed feel static.** Even without a business need, paging is such a common Android topic that having a `RemoteMediator` implementation would strengthen the portfolio.
-- **The search flow is network-only.** `getArticles` uses the offline-first pattern, but `searchArticles` goes straight to the network with no cache fallback. Consistency would be better — either cache search results too, or make the asymmetry more intentional.
+- **`channelFlow` is subtle.** A `combine` of the DAO stream and a refresh trigger would be easier to read.
+- **The feed feels static without paging.** A `RemoteMediator` would be a useful addition.
+- **Search is network-only.** `getArticles` is cache-first, `searchArticles` is not. The two should match.
 
 ## Setup
 
-This project uses [NewsAPI](https://newsapi.org/) for article data. Add your API key to `local.properties`:
+Add a [NewsAPI](https://newsapi.org/) key to `local.properties`:
 
 ```properties
 NEWS_API_KEY=your_api_key_here
 ```
 
-Build and run tests:
+Build and test:
 
 ```bash
 ./gradlew assembleDebug
 ./gradlew testDebugUnitTest
 ```
 
-Requires JDK 17. Targets Android API 26+ (compileSdk 35).
+Needs JDK 17. Targets Android API 26+ with compileSdk 35.
 
 ## Related repositories
 
-This is one piece of a portfolio covering different aspects of senior mobile engineering:
+Each repo in this set covers one area of mobile engineering.
 
-| Repository | Focus area |
+| Repository | Focus |
 |---|---|
 | **compose-newsreader** (this repo) | Multi-module Android, Hilt, Room, offline-first |
 | [android-design-system](https://github.com/hendra-marihot/android-design-system) | Compose component library, design tokens |
@@ -111,22 +99,8 @@ This is one piece of a portfolio covering different aspects of senior mobile eng
 | [flutter-expense-tracker](https://github.com/hendra-marihot/flutter-expense-tracker) | Clean Architecture, Riverpod, Drift, Material 3 |
 | [flutter-ui-toolkit](https://github.com/hendra-marihot/flutter-ui-toolkit) | Reusable widgets, shimmer, adaptive layouts |
 | [flutter-platform-bridge](https://github.com/hendra-marihot/flutter-platform-bridge) | Platform channels, native interop |
-| [mobile-ci-cd-templates](https://github.com/hendra-marihot/mobile-ci-cd-templates) | CI/CD, release automation, infrastructure |
+| [mobile-ci-cd-templates](https://github.com/hendra-marihot/mobile-ci-cd-templates) | CI/CD, release automation |
 
 ## License
 
-```
-Copyright 2026 Hendra Marihot
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+Copyright 2026 Hendra Marihot. Licensed under the [Apache License 2.0](LICENSE).
