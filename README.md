@@ -1,10 +1,11 @@
 # Compose NewsReader
 
+[![CI](https://github.com/hendra-marihot/compose-newsreader/actions/workflows/ci.yml/badge.svg)](https://github.com/hendra-marihot/compose-newsreader/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 A multi-module Android news reader built with Jetpack Compose, structured around offline-first data flow and strict layer boundaries. This is an architecture showcase, not a production app — the goal is to demonstrate the kind of structural thinking that matters on a team, using a domain simple enough to stay out of the way.
 
-I'm primarily a Flutter engineer. This project is part of a broader portfolio showing I can operate at a senior level across mobile platforms, not just in my primary stack. Other repositories cover different aspects of mobile engineering; this one focuses on modular architecture, cache-first data flow, and build system design in native Android.
-
-<!-- TODO: Add a GIF showing the main flow — browse categories, open article, toggle bookmark, check bookmarks tab. A single ~10s screen recording converted to GIF covers everything. -->
+This project is part of a broader portfolio covering senior-level mobile engineering across native Android and Flutter. Other repositories cover different aspects of mobile engineering; this one focuses on modular architecture, cache-first data flow, and build system design in native Android.
 
 ## Architecture
 
