@@ -26,7 +26,7 @@ This repo is one of eight on senior mobile engineering. See [Related repositorie
 
 `:core:model` and `:core:domain` are plain Kotlin/JVM modules. Domain owns the repository interfaces. Data provides the implementations. Domain code runs in tests without an Android runtime, and the build enforces the boundary.
 
-Five convention plugins in `build-logic/` manage module setup. `AndroidFeatureConventionPlugin` applies Compose, Hilt and every `:core:*` dependency, so a feature's `build.gradle.kts` is four lines long.
+Six convention plugins in `build-logic/` manage module setup. `AndroidFeatureConventionPlugin` applies Compose, Hilt and every `:core:*` dependency, so a feature's `build.gradle.kts` is four lines long.
 
 ## Key decisions
 
@@ -36,7 +36,7 @@ Five convention plugins in `build-logic/` manage module setup. `AndroidFeatureCo
 
 **Bookmark-preserving upserts.** A plain `@Upsert` would wipe the local `isBookmarked` flag on every refresh. The DAO runs a `@Transaction`: read the bookmarked IDs, upsert the batch, restore the flags. Non-bookmarked articles older than 24 hours are purged. Bookmarked ones stay.
 
-**Convention plugins instead of copied Gradle.** With 12 modules, repeating `compileSdk`, `minSdk`, Compose and Hilt setup in every build file is a maintenance problem. The `build-logic/` included build defines five plugins that compose. All versions live in `libs.versions.toml`.
+**Convention plugins instead of copied Gradle.** With 12 modules, repeating `compileSdk`, `minSdk`, Compose and Hilt setup in every build file is a maintenance problem. The `build-logic/` included build defines six plugins that compose. SDK levels and library versions live in `libs.versions.toml`. Kotlin compilation comes from AGP 9's built-in Kotlin support, so no module applies the Kotlin Android plugin.
 
 **kotlinx.serialization instead of Moshi.** Hilt, Room and serialization all run through KSP. kotlinx.serialization is Kotlin-native and needs no extra processor. Moshi gives better error messages for bad JSON, which matters more in production than here.
 
@@ -44,12 +44,13 @@ Five convention plugins in `build-logic/` manage module setup. `AndroidFeatureCo
 
 ## Tests
 
-29 JVM tests. They sit where the logic is: the repository, the mappers and the ViewModels.
+33 JVM tests. They sit where the logic is: the repository, the use cases, the mappers and the ViewModels.
 
 | Layer | Files | Covers |
 |---|---|---|
 | Repository | `OfflineFirstArticleRepositoryTest` (9) | Cache-first emission order, network failure fallback, bookmark toggle, search |
 | Mappers | `MappersTest` (5) | ID stability, uniqueness, field mapping, route safety |
+| Use cases | `UseCaseTests` (4) | Each use case delegates to the repository |
 | ViewModels | 4 files (14) | State transitions, category switching, bookmarks, preferences |
 | Navigation | `HomeRouteSerializationTest` (1) | Route serialization |
 
@@ -84,7 +85,7 @@ Build and test:
 ./gradlew testDebugUnitTest
 ```
 
-Needs JDK 17. Targets Android API 26+ with compileSdk 35.
+Needs JDK 17. Builds with Gradle 9.7, AGP 9.3 and Kotlin 2.4. Targets Android API 26 to 36 and compiles against API 37.
 
 ## Related repositories
 

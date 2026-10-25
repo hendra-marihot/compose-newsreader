@@ -1,5 +1,5 @@
 plugins {
-    id("newsreader.android.feature")
+    alias(libs.plugins.newsreader.android.feature)
 }
 
 android {

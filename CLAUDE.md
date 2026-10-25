@@ -6,7 +6,7 @@ Multi-module Android news reader app demonstrating Modern Android Development:
 Jetpack Compose + Material 3, Hilt DI, Room (offline-first), Retrofit + OkHttp,
 Kotlin Coroutines/Flow, kotlinx.serialization, Coil 3, DataStore preferences.
 
-Target: compileSdk 35, minSdk 26. JDK 17. Kotlin 2.1.21. AGP 8.9.1.
+Target: compileSdk 37, targetSdk 36, minSdk 26. JDK 17. Kotlin 2.4.21. AGP 9.3.2. Gradle 9.7.1.
 
 Requires a NewsAPI key in `local.properties`:
 ```

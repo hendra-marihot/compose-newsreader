@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.newsreader.jvm.library)
     alias(libs.plugins.kotlin.serialization)
 }
 
