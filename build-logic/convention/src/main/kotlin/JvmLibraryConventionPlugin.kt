@@ -15,6 +15,8 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
 
             extensions.configure<KotlinJvmProjectExtension> {
                 // Sets the Java toolchain too, so javac and kotlinc use the same JDK.
+                // A pure JVM module compiles against that JDK's class library, so this
+                // also stops a newer local JDK from leaking APIs into Java 17 bytecode.
                 jvmToolchain(libs.javaRelease)
                 compilerOptions {
                     jvmTarget.set(libs.jvmTarget)
