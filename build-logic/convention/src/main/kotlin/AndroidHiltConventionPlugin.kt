@@ -1,3 +1,4 @@
+import com.hendramarihot.newsreader.buildlogic.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
@@ -9,8 +10,6 @@ class AndroidHiltConventionPlugin : Plugin<Project> {
                 apply("com.google.dagger.hilt.android")
                 apply("com.google.devtools.ksp")
             }
-
-            val libs = libs()
 
             dependencies {
                 add("implementation", libs.findLibrary("hilt-android").get())

@@ -21,5 +21,4 @@ dependencies {
     implementation(libs.timber)
 
     testImplementation(libs.bundles.testing)
-    testRuntimeOnly(libs.junit5.engine)
 }

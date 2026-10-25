@@ -1,6 +1,6 @@
 plugins {
-    id("newsreader.android.application")
-    id("newsreader.android.hilt")
+    alias(libs.plugins.newsreader.android.application)
+    alias(libs.plugins.newsreader.android.hilt)
 }
 
 android {

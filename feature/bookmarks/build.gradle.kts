@@ -1,5 +1,5 @@
 plugins {
-    id("newsreader.android.feature")
+    alias(libs.plugins.newsreader.android.feature)
 }
 
 android {
@@ -8,5 +8,4 @@ android {
 
 dependencies {
     testImplementation(libs.bundles.testing)
-    testRuntimeOnly(libs.junit5.engine)
 }

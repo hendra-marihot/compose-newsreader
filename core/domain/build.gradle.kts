@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.newsreader.jvm.library)
 }
 
 dependencies {
@@ -8,5 +8,4 @@ dependencies {
     implementation(libs.javax.inject)
 
     testImplementation(libs.bundles.testing)
-    testRuntimeOnly(libs.junit5.engine)
 }
