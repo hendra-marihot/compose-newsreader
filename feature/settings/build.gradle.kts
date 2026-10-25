@@ -8,5 +8,4 @@ android {
 
 dependencies {
     testImplementation(libs.bundles.testing)
-    testRuntimeOnly(libs.junit5.engine)
 }

@@ -1,10 +1,10 @@
 import com.hendramarihot.newsreader.buildlogic.configureJUnitPlatform
-import org.gradle.api.JavaVersion
+import com.hendramarihot.newsreader.buildlogic.javaRelease
+import com.hendramarihot.newsreader.buildlogic.jvmTarget
+import com.hendramarihot.newsreader.buildlogic.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.configure
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 /** Pure Kotlin/JVM modules with no Android dependency (`:core:model`, `:core:domain`). */
@@ -13,14 +13,11 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply("org.jetbrains.kotlin.jvm")
 
-            extensions.configure<JavaPluginExtension> {
-                sourceCompatibility = JavaVersion.VERSION_17
-                targetCompatibility = JavaVersion.VERSION_17
-            }
-
             extensions.configure<KotlinJvmProjectExtension> {
+                // Sets the Java toolchain too, so javac and kotlinc use the same JDK.
+                jvmToolchain(libs.javaRelease)
                 compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_17)
+                    jvmTarget.set(libs.jvmTarget)
                 }
             }
 

@@ -81,14 +81,20 @@ versions or compiler options in individual `build.gradle.kts` files.
 
 | Plugin ID | Class | Configures |
 |---|---|---|
-| `newsreader.android.application` | `AndroidApplicationConventionPlugin` | App module: AGP, Kotlin, Compose compiler, compileSdk/minSdk/targetSdk, JVM 17 |
-| `newsreader.android.library` | `AndroidLibraryConventionPlugin` | Library modules: AGP, Kotlin, compileSdk/minSdk, JVM 17 |
+| `newsreader.android.application` | `AndroidApplicationConventionPlugin` | App module: AGP with built-in Kotlin, Compose compiler, compileSdk/minSdk/targetSdk from the catalog, JDK 17 toolchain, JUnit 5 |
+| `newsreader.android.library` | `AndroidLibraryConventionPlugin` | Library modules: AGP with built-in Kotlin, compileSdk/minSdk from the catalog, JDK 17 toolchain, JUnit 5 |
 | `newsreader.android.library.compose` | `AndroidComposeConventionPlugin` | Extends `android.library` + enables Compose build feature |
 | `newsreader.android.hilt` | `AndroidHiltConventionPlugin` | Hilt + KSP wiring for any module |
 | `newsreader.android.feature` | `AndroidFeatureConventionPlugin` | Feature modules: extends `library.compose` + `hilt`, adds `:core:ui/domain/model/common` + Navigation/Lifecycle deps |
+| `newsreader.jvm.library` | `JvmLibraryConventionPlugin` | Pure Kotlin/JVM modules: JDK 17 toolchain, JUnit 5, and a `testDebugUnitTest` alias so one command covers every module |
 
-Pure Kotlin modules (`:core:model`, `:core:domain`) use `alias(libs.plugins.kotlin.jvm)` directly
-instead of any convention plugin.
+Pure Kotlin modules (`:core:model`, `:core:domain`) apply `alias(libs.plugins.newsreader.jvm.library)`.
+Never apply `kotlin.jvm` directly: the plugin provides the JUnit Platform setup, and without it
+JUnit 5 tests are silently skipped.
+
+The JUnit 5 engine and launcher come from the convention plugins. Modules only declare
+`testImplementation(libs.bundles.testing)`. SDK levels and the Java release (`compileSdk`,
+`minSdk`, `targetSdk`, `java`) live in `gradle/libs.versions.toml`.
 
 ## Code Conventions
 

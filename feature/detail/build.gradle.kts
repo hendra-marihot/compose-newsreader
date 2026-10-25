@@ -11,5 +11,4 @@ dependencies {
     implementation(libs.coil.compose)
 
     testImplementation(libs.bundles.testing)
-    testRuntimeOnly(libs.junit5.engine)
 }

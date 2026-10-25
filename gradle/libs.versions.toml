@@ -5,6 +5,7 @@ minSdk = "26"
 targetSdk = "36"
 
 # Build tools
+java = "17"
 agp = "9.3.2"
 kotlin = "2.4.21"
 ksp = "2.3.12"

@@ -6,15 +6,18 @@ plugins {
 
 group = "com.hendramarihot.newsreader.buildlogic"
 
-// Target JDK 17 for the plugins themselves. Unrelated to the device target.
+// The plugins compile for the same Java release as the modules they configure.
+// This is about the JDK that runs Gradle, not the device target.
+val javaRelease = libs.versions.java.get()
+
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.toVersion(javaRelease)
+    targetCompatibility = JavaVersion.toVersion(javaRelease)
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
+        jvmTarget = JvmTarget.fromTarget(javaRelease)
     }
 }
 
