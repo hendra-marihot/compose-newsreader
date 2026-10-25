@@ -13,6 +13,12 @@ pluginManagement {
     }
 }
 
+// jvmToolchain(17) in the convention plugins needs a JDK 17. This resolver
+// downloads one when the machine has none, so Android Studio's bundled JDK works.
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {

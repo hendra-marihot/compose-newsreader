@@ -85,7 +85,7 @@ Build and test:
 ./gradlew testDebugUnitTest
 ```
 
-Needs JDK 17. Builds with Gradle 9.7, AGP 9.3 and Kotlin 2.4. Targets Android API 26 to 36 and compiles against API 37.
+Needs JDK 17 and the API 37 platform (`platforms;android-37.0`). The toolchain resolver downloads JDK 17 when it is missing, and AGP installs the platform when the SDK licenses are accepted. Builds with Gradle 9.7, AGP 9.3 and Kotlin 2.4. Targets Android API 26 to 36 and compiles against API 37.
 
 ## Related repositories
 
