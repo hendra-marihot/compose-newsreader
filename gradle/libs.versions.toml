@@ -2,6 +2,8 @@
 # Android SDK
 compileSdk = "37"
 minSdk = "26"
+# targetSdk stays one behind compileSdk until the API 37 behavior changes are reviewed.
+# Lint reports OldTargetApi for this on purpose.
 targetSdk = "36"
 
 # Build tools

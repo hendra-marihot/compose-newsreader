@@ -30,8 +30,9 @@ internal fun Project.configureKotlinAndroid(commonExtension: CommonExtension) {
     }
 
     extensions.configure<KotlinAndroidProjectExtension> {
-        // Pin the JDK that compiles the module. Without this a newer local JDK
-        // compiles against its own class library while emitting Java 17 bytecode.
+        // Pin the JDK that runs the compilers so builds match across machines and
+        // CI. Android modules compile against android.jar, so this is about
+        // reproducibility, not about leaking newer JDK APIs.
         jvmToolchain(libs.javaRelease)
         compilerOptions {
             jvmTarget.set(libs.jvmTarget)

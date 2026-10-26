@@ -8,6 +8,10 @@ Kotlin Coroutines/Flow, kotlinx.serialization, Coil 3, DataStore preferences.
 
 Target: compileSdk 37, targetSdk 36, minSdk 26. JDK 17. Kotlin 2.4.21. AGP 9.3.2. Gradle 9.7.1.
 
+Local prerequisites: a JDK 17 or newer to run Gradle (if it is newer than 17, the Foojay resolver in
+`settings.gradle.kts` downloads JDK 17 for compilation) and the API 37 platform
+`platforms;android-37.0` (AGP installs it when the SDK licenses are accepted).
+
 Requires a NewsAPI key in `local.properties`:
 ```
 NEWS_API_KEY=your_api_key_here
